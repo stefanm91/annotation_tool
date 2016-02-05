@@ -5,6 +5,8 @@ import dlib
 from skimage import io
 import glob
 import numpy as np
+import cPickle
+import datetime
 
 class SampleApp(tk.Tk):
     '''Illustrate how to drag items on a Tkinter canvas'''
@@ -59,8 +61,6 @@ class SampleApp(tk.Tk):
 	#panel.pack()
 	
 	
-
-	
 	
 	#self.canvas.tag_lower(panel)
 	#self.canvas.tag_lower(self.img)
@@ -86,6 +86,7 @@ class SampleApp(tk.Tk):
 	self.prev_tracker = self.tracker
 	self.flag = 0
 	
+	'''create buttons section'''
 	
 	#add quit button
         button1 = tk.Button(self.canvas, text = "Quit", command = self.quit,
@@ -93,6 +94,19 @@ class SampleApp(tk.Tk):
         button1.configure(width = 10)
         button1.pack()
         button1_window = self.canvas.create_window(10, 10, anchor="nw", window=button1)
+	
+	button2 = tk.Button(self.canvas, text = "Save annotations", command = self.save, anchor = "w")
+	button2.configure(width = 15)
+	button2.pack()
+	button2_window = self.canvas.create_window(150, 10, anchor="nw", window=button2)
+	
+	#check if inbetwen save and load the space is same
+	button3 = tk.Button(self.canvas, text = "Load annotations", command = self.load, anchor = "w")
+	button3.configure(width = 15)
+	button3.pack()
+	button3_window = self.canvas.create_window(330, 10, anchor="nw", window=button3)
+	
+	
 	
     def _create_token(self, coord, color, rectangle_size):
         '''Create a token at the given coordinate in the given color'''
@@ -128,6 +142,26 @@ class SampleApp(tk.Tk):
       #print (rel_position.left())
       self.canvas.move(self.polygon_id, -curr_position[0]+rel_position[0], -curr_position[1]+rel_position[1])
     
+    def save(self):
+      # on each update replace the same file
+      # on each session create new file so there won't be overwrites
+      
+      
+      f = file("annotations.model", 'wb')
+      cPickle.dump(self.rectangle_frame_pairs, f, protocol = cPickle.HIGHEST_PROTOCOL)
+      f.close()
+      
+      print "save was called!"
+    
+    # make Browse button
+    def load(self):
+      f = file("annotations.model", 'rb')
+      self.rectangle_frame_pairs = cPickle.load(f)
+      f.close()
+      
+      #write message like successfully loaded etc.
+      print "load was called"
+    
     def rightKey(self, event):
       self.img_num +=1
       if self.img_num >= len(self.images):
@@ -138,10 +172,16 @@ class SampleApp(tk.Tk):
 	  self._change_rectangle() 
       self._change_image()
     
+    # same code in both right and left key, refactor
+    
     def leftKey(self, event):
       self.img_num -=1 
       if self.img_num >= len(self.images): 
 	self.img_num = 0
+      else:
+	# if rectangle exists redraw it
+	if (self.rectangle_frame_pairs[self.img_num] is not 0):
+	  self._change_rectangle() 
       self._change_image()
     
     def returnKey(self, event):
