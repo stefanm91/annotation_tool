@@ -1,0 +1,2 @@
+ffmpeg -i 20151202001_3.AVI -ss 00:00:15 -t 00:00:25 -qscale:v 2 -r 40 -f image2 "%d.jpg"
+ 
