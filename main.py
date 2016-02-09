@@ -164,8 +164,8 @@ class SampleApp(tk.Tk):
       if train == 0:
 	file = os.path.join(self.save_folder_txt, "train.txt")
       else:
-	file = self.save_folder_txt.join("val.txt")
-      print file
+	file = os.path.join(self.save_folder_txt, "val.txt")
+      
       with open(file, "a") as myfile:
 	# just for testing purposes
 	# later for all images in separate folder
@@ -196,11 +196,11 @@ class SampleApp(tk.Tk):
 	# just with matrices
 	
 	while p < (640/window_size[1])*(480/window_size[0]):
-	  Image.fromarray(self.images_raw[image_num][coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_{2}.jpg".format(self.save_folder_patches,self.img_num,counter))
+	  Image.fromarray(self.images_raw[image_num][coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_{2}.jpg".format(self.save_folder_patches,image_num,counter))
 	  if p == 0:
-	    myfile.write("patches/{0}_{1}.jpg 1".format(self.img_num, counter))
+	    myfile.write("patches/{0}_{1}.jpg 1 \n".format(image_num, counter))
 	  else:
-	    myfile.write("patches/{0}_{1}.jpg 0".format(self.img_num, counter))
+	    myfile.write("patches/{0}_{1}.jpg 0 \n".format(image_num, counter))
 	    
 	  coord_y = coord_y+window_size[1]
 	  #proverka dali odi vo nov red, proveri na mal primer
@@ -227,8 +227,8 @@ class SampleApp(tk.Tk):
 	    break      
 	  
 	  #Image.fromarray(patches[coord_x*(640-(window_size[1]-1))+coord_y]).save("test{0}.jpeg".format(p))
-	  Image.fromarray(self.images_raw[image_num][coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_{2}.jpg".format(self.save_folder_patches,self.img_num,counter))
-	  myfile.write("patches/{0}_{1}.jpg 0".format(self.img_num, counter))
+	  Image.fromarray(self.images_raw[image_num][coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_{2}.jpg".format(self.save_folder_patches,image_num,counter))
+	  myfile.write("patches/{0}_{1}.jpg 0 \n".format(image_num, counter))
 	  #print coord_x, coord_y
 	  p = p+1
 	  counter = counter + 1
@@ -260,10 +260,15 @@ class SampleApp(tk.Tk):
       # split into training and test and save in file
       stop_training = int(counter*0.75)
      
+      # this can go in one while document
       c = 0
       while c < stop_training:
 	if self.rectangle_frame_pairs <> 0:
 	  self._sliding_window ((50,100), c, 0, 0)
+	  c = c+1
+      while c < counter:
+	if self.rectangle_frame_pairs <> 0:
+	  self._sliding_window ((50,100), c, 0, 1)
 	  c = c+1
       
       # check verbose
