@@ -21,9 +21,13 @@ class SampleApp(tk.Tk):
         # create a canvas
         self.canvas = tk.Canvas(width=860, height=640)
         self.canvas.pack(fill="both", expand=True)
-
-	self.video_folder = os.path.abspath("/home/stefan/Documents/plexondata/2015_12_02_rat10/output1/")
-        self.save_folder = os.path.abspath("/home/stefan/Documents/patches_output/")
+	
+	# maybe setup main folder here like $TOOLS
+	
+	#self.video_folder = os.path.abspath("/home/stefan/Documents/plexondata/2015_12_02_rat10/output1/")
+        self.video_folder = os.path.abspath("/home/stefan/Documents/paw_tracking/frames")
+        self.save_folder_patches = os.path.abspath("/home/stefan/Documents/paw_tracking/patches")
+        self.save_folder_txt = os.path.abspath("/home/stefan/Documents/paw_tracking")
         
         # create an image
         
@@ -127,7 +131,7 @@ class SampleApp(tk.Tk):
 	#self.canvas.tag_raise(self.polygon_id)
     
     def _read_all_images(self):
-      for k, f in enumerate(sorted(glob.glob(os.path.join(self.video_folder, "*.jpeg")))):
+      for k, f in enumerate(sorted(glob.glob(os.path.join(self.video_folder, "*.jpg")))):
 	img_raw = io.imread(f)
 	#print len(img_raw)
 	self.images_raw.append(img_raw)
@@ -152,78 +156,123 @@ class SampleApp(tk.Tk):
       curr_position = self._get_coord_rectangle()
       #print (rel_position.left())
       self.canvas.move(self.polygon_id, -curr_position[0]+rel_position[0], -curr_position[1]+rel_position[1])
-        
-    def _sliding_window(self, window_size, overlap = 0):
-      # just for testing purposes
-      # later for all images in separate folder
-      #img = self.images_raw[0][:,:,0]
-      img = self.images_raw[0]
-      #img = np.arange(640*480).reshape((640,480))
-      #patches = image.extract_patches_2d(img, window_size)
+    
+    
+    # move the train = 0 out of this function
+    def _sliding_window(self, window_size, image_num = 0, overlap = 0, train = 0):
       
-      # for each positive patch choose one negative by random
-      # but make sure it does not overlap by more than 50%
-      # maybe make two separate functions for positive and negative samples
-      
-      # left top right bottom
-      coord_relative = self._get_coord_rectangle()
-      #win = dlib.image_window()
-      #print coord_relative
-      #print img.shape
-      #Image.fromarray(self.patches[540*(480-(50-1))+430]).save("test.jpg")
-      patch_nr = coord_relative[1]*(640-(window_size[1]-1))+coord_relative[0]
-      coord_x = coord_relative[1]
-      coord_y = coord_relative[0]
-      p = 0
-      counter = 0
-      while p < (640/window_size[1])*(480/window_size[0]):
-	Image.fromarray(self.images_raw[0][coord_x:coord_x+50,coord_y:coord_y+100,:]).save("/home/stefan/Documents/output_proba/{0}_{1}.jpg".format(self.img_num,counter))
-	coord_y = coord_y+window_size[1]
-	#proverka dali odi vo nov red, proveri na mal primer
-	if coord_y >= 640-window_size[1]:
-	  coord_x = coord_x+window_size[0]
-	  coord_y = 0
-	if coord_x >= 480-window_size[0]:
-	  break
+      if train == 0:
+	file = os.path.join(self.save_folder_txt, "train.txt")
+      else:
+	file = self.save_folder_txt.join("val.txt")
+      print file
+      with open(file, "a") as myfile:
+	# just for testing purposes
+	# later for all images in separate folder
+	#img = self.images_raw[0][:,:,0]
+	img = self.images_raw[image_num]
+	#img = np.arange(640*480).reshape((640,480))
+	#patches = image.extract_patches_2d(img, window_size)
 	
-	#print coord_x, coord_y
-	p = p+1
-	counter = counter + 1
-      
-      print 'yo'
-      p = 0
-      coord_x = coord_relative[1]
-      coord_y = coord_relative[0]
-      while p < (640/window_size[1])*(480/window_size[0]):
-	coord_y = coord_y-window_size[1]
-	#proverka dali odi vo nov red, proveri na mal primer
-	#proveri dali pomalo i ednakvo
-	if coord_y < 0:
-	  coord_x = coord_x-window_size[0]
-	  coord_y = 640-window_size[1]
-	if coord_x < 0:
-	  break      
+	# for each positive patch choose one negative by random
+	# but make sure it does not overlap by more than 50%
+	# maybe make two separate functions for positive and negative samples
 	
-	#Image.fromarray(patches[coord_x*(640-(window_size[1]-1))+coord_y]).save("test{0}.jpeg".format(p))
-	Image.fromarray(self.images_raw[0][coord_x:coord_x+50,coord_y:coord_y+100,:]).save("/home/stefan/Documents/output_proba/{0}_{1}.jpg".format(self.img_num,counter))
-	#print coord_x, coord_y
-	p = p+1
-	counter = counter + 1
+	# left top right bottom
+	#coord_relative = self._get_coord_rectangle()
+	coord_relative = self.rectangle_frame_pairs[image_num]
+	
+	#win = dlib.image_window()
+	#print coord_relative
+	#print img.shape
+	#Image.fromarray(self.patches[540*(480-(50-1))+430]).save("test.jpg")
+	patch_nr = coord_relative[1]*(640-(window_size[1]-1))+coord_relative[0]
+	coord_x = coord_relative[1]
+	coord_y = coord_relative[0]
+	p = 0
+	counter = 0
+	
+	# make this more efficient without the whiles
+	# just with matrices
+	
+	while p < (640/window_size[1])*(480/window_size[0]):
+	  Image.fromarray(self.images_raw[image_num][coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_{2}.jpg".format(self.save_folder_patches,self.img_num,counter))
+	  if p == 0:
+	    myfile.write("patches/{0}_{1}.jpg 1".format(self.img_num, counter))
+	  else:
+	    myfile.write("patches/{0}_{1}.jpg 0".format(self.img_num, counter))
+	    
+	  coord_y = coord_y+window_size[1]
+	  #proverka dali odi vo nov red, proveri na mal primer
+	  if coord_y >= 640-window_size[1]:
+	    coord_x = coord_x+window_size[0]
+	    coord_y = 0
+	  if coord_x >= 480-window_size[0]:
+	    break
+	  
+	  #print coord_x, coord_y
+	  p = p+1
+	  counter = counter + 1
+	p = 0
+	coord_x = coord_relative[1]
+	coord_y = coord_relative[0]
+	while p < (640/window_size[1])*(480/window_size[0]):
+	  coord_y = coord_y-window_size[1]
+	  #proverka dali odi vo nov red, proveri na mal primer
+	  #proveri dali pomalo i ednakvo
+	  if coord_y < 0:
+	    coord_x = coord_x-window_size[0]
+	    coord_y = 640-window_size[1]
+	  if coord_x < 0:
+	    break      
+	  
+	  #Image.fromarray(patches[coord_x*(640-(window_size[1]-1))+coord_y]).save("test{0}.jpeg".format(p))
+	  Image.fromarray(self.images_raw[image_num][coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_{2}.jpg".format(self.save_folder_patches,self.img_num,counter))
+	  myfile.write("patches/{0}_{1}.jpg 0".format(self.img_num, counter))
+	  #print coord_x, coord_y
+	  p = p+1
+	  counter = counter + 1
 
-      # or maybe instead of this, create non-overlapping windows, but that way it can miss
-      # the positive sample
-	
-      #Image.fromarray(self.patches[]).save("test.jpg")
-      # stavi tuka prefiksi na slikite
+	# or maybe instead of this, create non-overlapping windows, but that way it can miss
+	# the positive sample
+	  
+	#Image.fromarray(self.patches[]).save("test.jpg")
+	# stavi tuka prefiksi na slikite
       
       
       #print self.patches.shape
       #for p in range(0,len(patches)):
 	#im = Image.fromarray(patches[p])
 	#im.save("test{0}.jpg".format(p))
-	
+      print "patches successfully saved for image: ", image_num 
     def extract_patches(self):
-      self._sliding_window((50,100),0)
+      # check for 0 in rectangles
+      # count all zeros so you know how to split train and test
+      # shuffle data
+      # or maybe put NaN and count nans
+      
+      counter = 0
+      for rect in self.rectangle_frame_pairs:
+	if rect is not 0:
+	  counter = counter + 1
+
+
+      # split into training and test and save in file
+      stop_training = int(counter*0.75)
+     
+      c = 0
+      while c < stop_training:
+	if self.rectangle_frame_pairs <> 0:
+	  self._sliding_window ((50,100), c, 0, 0)
+	  c = c+1
+      
+      # check verbose
+      print "patches were saved congrats to you!!!"
+      
+      
+      
+      #self._sliding_window((50,100),0,0)
+      
     
     def save(self):
       # on each update replace the same file
