@@ -134,6 +134,7 @@ class SampleApp(tk.Tk):
       for k, f in enumerate(sorted(glob.glob(os.path.join(self.video_folder, "*.jpg")))):
 	img_raw = io.imread(f)
 	#print len(img_raw)
+	#print f
 	self.images_raw.append(img_raw)
 	self.images.append(ImageTk.PhotoImage(image = Image.fromarray(img_raw)))
       
@@ -180,13 +181,14 @@ class SampleApp(tk.Tk):
 	
 	# left top right bottom
 	#coord_relative = self._get_coord_rectangle()
+	#print image_num
+
 	coord_relative = self.rectangle_frame_pairs[image_num]
-	
 	#win = dlib.image_window()
 	#print coord_relative
 	#print img.shape
 	#Image.fromarray(self.patches[540*(480-(50-1))+430]).save("test.jpg")
-	patch_nr = coord_relative[1]*(640-(window_size[1]-1))+coord_relative[0]
+	#patch_nr = coord_relative[1]*(640-(window_size[1]-1))+coord_relative[0]
 	coord_x = coord_relative[1]
 	coord_y = coord_relative[0]
 	p = 0
@@ -196,11 +198,11 @@ class SampleApp(tk.Tk):
 	# just with matrices
 	
 	while p < (640/window_size[1])*(480/window_size[0]):
-	  Image.fromarray(self.images_raw[image_num][coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_{2}.jpg".format(self.save_folder_patches,image_num,counter))
+	  Image.fromarray(self.images_raw[image_num][coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/5_{1}_{2}.jpg".format(self.save_folder_patches,image_num,counter))
 	  if p == 0:
-	    myfile.write("patches/{0}_{1}.jpg 1 \n".format(image_num, counter))
+	    myfile.write("patches/5_{0}_{1}.jpg 1 \n".format(image_num, counter))
 	  else:
-	    myfile.write("patches/{0}_{1}.jpg 0 \n".format(image_num, counter))
+	    myfile.write("patches/5_{0}_{1}.jpg 0 \n".format(image_num, counter))
 	    
 	  coord_y = coord_y+window_size[1]
 	  #proverka dali odi vo nov red, proveri na mal primer
@@ -227,8 +229,8 @@ class SampleApp(tk.Tk):
 	    break      
 	  
 	  #Image.fromarray(patches[coord_x*(640-(window_size[1]-1))+coord_y]).save("test{0}.jpeg".format(p))
-	  Image.fromarray(self.images_raw[image_num][coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_{2}.jpg".format(self.save_folder_patches,image_num,counter))
-	  myfile.write("patches/{0}_{1}.jpg 0 \n".format(image_num, counter))
+	  Image.fromarray(self.images_raw[image_num][coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/5_{1}_{2}.jpg".format(self.save_folder_patches,image_num,counter))
+	  myfile.write("patches/5_{0}_{1}.jpg 0 \n".format(image_num, counter))
 	  #print coord_x, coord_y
 	  p = p+1
 	  counter = counter + 1
@@ -262,14 +264,18 @@ class SampleApp(tk.Tk):
      
       # this can go in one while document
       c = 0
+      c1 = 0
       while c < stop_training:
-	if self.rectangle_frame_pairs <> 0:
-	  self._sliding_window ((50,100), c, 0, 0)
-	  c = c+1
+	if self.rectangle_frame_pairs[c1] <> 0:
+	  self._sliding_window ((50,100), c1, 0, 0)
+	  c = c + 1
+	c1 = c1+1
+      
       while c < counter:
-	if self.rectangle_frame_pairs <> 0:
-	  self._sliding_window ((50,100), c, 0, 1)
+	if self.rectangle_frame_pairs[c1] <> 0:
+	  self._sliding_window ((50,100), c1, 0, 1)
 	  c = c+1
+	c1 = c1+1
       
       # check verbose
       print "patches were saved congrats to you!!!"
@@ -293,7 +299,11 @@ class SampleApp(tk.Tk):
     # make Browse button
     def load(self):
       f = file("annotations.model", 'rb')
-      self.rectangle_frame_pairs = cPickle.load(f)
+      previous_frames = cPickle.load(f)
+      
+      # in case extra frames are added
+      self.rectangle_frame_pairs[0:len(previous_frames)] = previous_frames  
+      
       f.close()
       
       #write message like successfully loaded etc.
@@ -308,6 +318,8 @@ class SampleApp(tk.Tk):
 	if (self.rectangle_frame_pairs[self.img_num] is not 0):
 	  self._change_rectangle() 
       self._change_image()
+      #print self.img_num/float(20*3600)
+      
     
     # same code in both right and left key, refactor
     
@@ -323,13 +335,13 @@ class SampleApp(tk.Tk):
     
     def returnKey(self, event):
         #self._sliding_window((50,100),0)
-        
+        #print self.img_num/float(20*3600)
         #save rectangle position
         self.rectangle_frame_pairs[self.img_num] = self._get_coord_rectangle()
         
         #print image_id
-        print self._get_coord_rectangle()
-        print self.rectangle_frame_pairs
+        #print self._get_coord_rectangle()
+        #print self.rectangle_frame_pairs
         
         
         # set the current position of the rectangle for tracking
