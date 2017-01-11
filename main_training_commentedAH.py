@@ -1,52 +1,62 @@
-import Tkinter as tk
-import os
-from PIL import ImageTk, Image
-import dlib
-from skimage import io
-import glob
-import numpy as np
-import cPickle
-import datetime
-from sklearn.feature_extraction import image
-import extract_patches
+import Tkinter as tk  	# GUI 
+import os	      	# system calls
+from PIL import ImageTk, Image # images in GUI and image processing 
+import dlib	      	# correlational tracker
+from skimage import io 	# image read and conversion to array 
+import glob		# some linux command functions
+import numpy as np	# matlab python stuff
+import cPickle		# saving rectangle pairs (list i/o)
+import datetime		# date time function 
+from sklearn.feature_extraction import image # just another image processing lib
+import extract_patches	# for patch extraction?
 
-
-class SampleApp(tk.Tk):
+class SampleApp(tk.Tk):  # inherit from Tk class 
     '''Illustrate how to drag items on a Tkinter canvas'''
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
+        from ConfigParser import SafeConfigParser   # additonal parser lib
+
+        config = SafeConfigParser()
+        # [changeable]
+        # location where config.ini is stored
+        config.read(os.path.abspath("/media/deeplearning/BCB24522B244E30E/experiment_DL2/config.ini")) 
+
+    
+        # main folder where the experiment files are stored
+        # change to main dir and afterwards use relative paths
+        main_folder = config.get("Shared", "main_folder")
+        os.chdir(main_folder)
+
+
 	# set title you can do it in main as well
 	self.title("Data annotation")
 	
         # create a canvas
-        self.canvas = tk.Canvas(width=1354, height=640)
-        self.canvas.pack(fill="both", expand=True)
+        self.canvas = tk.Canvas(width=1354, height=640) # size 
+        self.canvas.pack(fill="both", expand=True)	# 
 	
 	
         # folder settings
         
-        # [changeable]
-        # path of where already extracted frames are stored
-        self.video_folder = os.path.abspath("//media/deeplearning/BCB24522B244E30E/experiment_DL/frames/training/")
         
-        # [changeable][optional]
+        # path of where already extracted frames are stored
+        self.video_folder = config.get("Training", "frames_location")
+        
         # path of patches to be extracted
         # for non-patch approach, the content won't matter
         self.save_folder_patches = os.path.abspath("/media/deeplearning/BCB24522B244E30E/annotated_videos/23.12.2015_no_paper/frames/")
         
-        # [changeable]
         # indicate where annotation.model is to be stored, e.g. annotations/annotation_training.model  (including filename)
-        self.annot_save_folder = os.path.abspath("/media/deeplearning/BCB24522B244E30E/experiment_DL/annotations/annotation_training.model")
+        self.annot_save_folder = config.get("Training", "annotation_file_location")
         
-        # [changeable][optional]
         # for non-patch approach, the content won't matter
         self.save_folder_txt = os.path.abspath("/media/deeplearning/BCB24522B244E30E/annotated_videos/23.12.2015_no_paper/")
 	
         # set image counter
         self.img_num = 0
-        self.read_image_from_file()
+        self.read_image_from_file()  # read figure in self.curr_photoimage
         self.create_photo_from_raw()
         
 	self.total_num_of_frames = self.read_num_of_images()
@@ -64,7 +74,7 @@ class SampleApp(tk.Tk):
         # rectangle size in x and y
         self.rectangle_size = [100, 50]
         
-        self.create_token((100, 100), "blue", self.rectangle_size)
+        self.create_token((100, 100), "blue", self.rectangle_size) # in here tags="token" assigned 
 
 	
         # add bindings for clicking, dragging and releasing over

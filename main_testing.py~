@@ -16,7 +16,21 @@ class SampleApp(tk.Tk):
 
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
+        
+        
+        
+        config = SafeConfigParser()
+        
+        # [changeable]
+        # location where config.ini is stored
+        config.read(os.path.abspath("/media/deeplearning/BCB24522B244E30E/experiment_DL/config.ini")) 
 
+        # [changeable]
+        # main folder where the experiment files are stored
+        # change to main dir and afterwards use relative paths
+        main_folder = config.get("Shared", "main_folder")
+        os.chdir(main_folder)
+        
 	# set title you can do it in main as well
 	self.title("Data annotation")
 	
@@ -29,7 +43,7 @@ class SampleApp(tk.Tk):
         
         # [changeable]
         # path of where already extracted frames are stored
-        self.video_folder = os.path.abspath("//media/deeplearning/BCB24522B244E30E/experiment_DL/frames/training/")
+        self.video_folder = config.get("Test", "frames_location")
         
         # [changeable][optional]
         # path of patches to be extracted
@@ -38,7 +52,7 @@ class SampleApp(tk.Tk):
         
         # [changeable]
         # indicate where annotation.model is to be stored, e.g. annotations/annotation_training.model  (including filename)
-        self.annot_save_folder = os.path.abspath("/media/deeplearning/BCB24522B244E30E/experiment_DL/annotations/annotation_training.model")
+        self.annot_save_folder = config.get("Test", "annotation_file_location")
         
         # [changeable][optional]
         # for non-patch approach, the content won't matter

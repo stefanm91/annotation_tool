@@ -1,0 +1,68 @@
+import scipy.io, os
+import numpy as np
+import cPickle
+from PIL import Image
+import shutil
+
+"""
+save_folder_txt = os.path.abspath("/home/deeplearning/Documents/paw_tracking_caffe/models/model28")
+f = file(os.path.join(save_folder_txt,"annotations.model"), 'rb')
+previous_frames = cPickle.load(f)
+for p in range(0,len(previous_frames)):
+  if previous_frames[p] == 0:
+    previous_frames[p] = [-1, -1, -1, -1]
+    
+#scipy.io.savemat(os.path.join(save_folder_txt, "annotations.mat"), mdict = {'annotations': previous_frames}) 
+scipy.io.savemat("annotations.mat", mdict = {'annotations': np.array(previous_frames)}) 
+f.close()
+"""
+
+def create_masks_for_model(model_folder):
+ global images_counter
+ global save_path
+ global save_folder
+ global models_path
+ file_name = os.path.join(model_folder, "annotations.model")
+ annot = load_annotations_from_file(file_name)
+ for x in range(0, len(annot)):
+   if (annot[x] <> 0):
+     arr = np.zeros((480, 640))
+     arr[annot[x][1]:annot[x][3], annot[x][0]:annot[x][2]] = 1
+     #print annot
+     MM = {
+        'PartMask' : arr
+     }
+        #if not os.path.exists(save_folder):
+     #  os.makedirs(save_folder)
+     
+     # create images folder add all images there  
+     if not os.path.exists(save_folder):
+       os.makedirs(save_folder)
+     
+     #print os.path.join(model_folder, "frames", "{0}.jpg".format(x+1))  
+     #print os.path.join(save_folder, "{0}.jpg".format(images_counter))
+     shutil.copy2(os.path.join(model_folder, "frames", "{0}.jpg".format(x+1)), os.path.join(save_folder, "{0}.jpg".format(images_counter)))   
+        
+     scipy.io.savemat(os.path.join(save_path,"masks","{0}.mat".format(images_counter)), mdict = {'MM': MM}, do_compression = True)
+     images_counter = images_counter + 1 
+
+def load_annotations_from_file(file_name):
+  f = file(file_name, 'rb')
+  frame_rectangle_pairs = cPickle.load(f)
+  #print frame_rectangle_pairs
+  f.close()
+  return frame_rectangle_pairs
+
+images_counter = 1
+save_path = os.path.abspath("/media/deeplearning/BCB24522B244E30E/u-net/")
+save_folder = os.path.abspath("/media/deeplearning/BCB24522B244E30E/u-net/images")           
+models_path = os.path.abspath("/home/deeplearning/Documents/paw_tracking_caffe/models/")
+for f in os.listdir(models_path):
+  if os.path.isdir(os.path.join(models_path, f)) is True:
+    folder_name = os.path.join(models_path, f)
+    #save_folder = os.path.join(os.path.join(models_path, f), "masks")
+    create_masks_for_model(folder_name)
+    #call function for creating masks here
+    print "folder numero: ", f
+  break
+

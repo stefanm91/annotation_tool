@@ -29,19 +29,19 @@ class SampleApp(tk.Tk):
         
         # [changeable]
         # path of where already extracted frames are stored
-        self.video_folder = os.path.abspath("//media/deeplearning/BCB24522B244E30E/experiment_DL/frames/training/")
+        self.video_folder = os.path.abspath("/media/deeplearning/BCB24522B244E30E/annotated_videos/23.12.2015_no_paper/frames/")
         
-        # [changeable][optional]
+        # [changeable]
         # path of patches to be extracted
         # for non-patch approach, the content won't matter
         self.save_folder_patches = os.path.abspath("/media/deeplearning/BCB24522B244E30E/annotated_videos/23.12.2015_no_paper/frames/")
         
         # [changeable]
-        # indicate where annotation.model is to be stored, e.g. annotations/annotation_training.model  (including filename)
-        self.annot_save_folder = os.path.abspath("/media/deeplearning/BCB24522B244E30E/experiment_DL/annotations/annotation_training.model")
+        # indicate where annotation.model is to be stored
+        self.annot_save_folder = os.path.abspath("/media/deeplearning/BCB24522B244E30E/annotated_videos/23.12.2015_no_paper/annotation123.model")
         
-        # [changeable][optional]
-        # for non-patch approach, the content won't matter
+        # [changeable]
+        # 
         self.save_folder_txt = os.path.abspath("/media/deeplearning/BCB24522B244E30E/annotated_videos/23.12.2015_no_paper/")
 	
         # set image counter
