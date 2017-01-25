@@ -15,9 +15,9 @@ The annotation data is necessary to later train deep neural networks. (This way 
 # Video preperation
 Before annotation is done, the video segments where the object of interest is visible has to be selected manually and than the frames where movement of the object is present has to be extracted from the video. Once the extraction is done, it can be proceeded with annotation.
 
-1.	Copy training and test videos to folder \experiment_DL\videos
+1.	Copy training and test videos to folder /experiment_DL/videos
 
-2.	Create files segments_{video}.txt for each video that you want to be used for training or testing in the following directory \experiment_DL\segments\
+2.	Create files segments_{video}.txt for each video that you want to be used for training or testing in the following directory /experiment_DL/segments
 
 	{video} can e.g. be training or validation, does not have to be video name. In this tutorial, there are two videos, one for training and one for testing, so two files are present: segments_Training.txt and segments_Test.txt
 
@@ -27,7 +27,7 @@ Before annotation is done, the video segments where the object of interest is vi
 00:22:34
 Note: For each video there should be separate segments_{video}.txt file. In the training case segments_Training.txt was used. For testing use segments_Test.txt
 
-4.	Now, next step is to extract the frames from the segmented videos. The frames are split into training and testing frames. For this reason, two scripts called extract_frames_from_segments_training.py and  extract_frames_from_segments_test.py exist. Navigate to <DIR>/annotation_tool to find the above mentioned scrips.
+4.	Now, next step is to extract the frames from the segmented videos. The frames are split into training and testing frames. For this reason, two scripts called extract_frames_from_segments_training.py and  extract_frames_from_segments_test.py exist. Navigate to /annotation_tool to find the above mentioned scrips.
 
 5.	First, open extract_frames_from_segments_training.py and change the appropriate variables where the tag [changeable] is present.  If you have one training video, leave images_counter as it is, otherwise change it to the number of last frame present in the training folder (if you had previously extracted frames from another video the frame numbers should continue from where they stopped). Start the script with python extract_frames_from_segments_training.py
 After the extraction the extracted frames are stored in:
@@ -40,7 +40,7 @@ After the extraction the extracted frames are stored in:
 7.	Repeat steps 1-6 for all the training/testing videos.
 
 # HowTo extract patches
-
+To start the annotation tool, run main_training.py by opening Terminal, navigating to <DIR>/annotation_tool and writing the command python main_training.py. Annotate the data and press on the button Save Annotations. 
 
 # HowTo generate image masks
 1.	First annotation of the previously extracted training frames will be done.
