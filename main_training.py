@@ -21,7 +21,7 @@ class SampleApp(tk.Tk):  # inherit from Tk class
         config = SafeConfigParser()
         # [changeable]
         # location where config.ini is stored
-        config.read(os.path.abspath("/media/deeplearning/BCB24522B244E30E/experiment_DL2/config.ini")) 
+        config.read(os.path.abspath("/media/deeplearning/BCB24522B244E30E/experiment_AH/config.ini")) 
 
     
         # main folder where the experiment files are stored
@@ -46,7 +46,7 @@ class SampleApp(tk.Tk):  # inherit from Tk class
         
         # path of patches to be extracted
         # for non-patch approach, the content won't matter
-        self.save_folder_patches = os.path.abspath("/media/deeplearning/BCB24522B244E30E/annotated_videos/23.12.2015_no_paper/frames/")
+        self.save_folder_patches = os.path.abspath("/media/deeplearning/BCB24522B244E30E/experiment_AH/frames/training_patches2/")
         
         # indicate where annotation.model is to be stored, e.g. annotations/annotation_training.model  (including filename)
         self.annot_save_folder = config.get("Training", "annotation_file_location")
@@ -115,11 +115,17 @@ class SampleApp(tk.Tk):  # inherit from Tk class
 	button3.pack()
 	button3_window = self.canvas.create_window(330, 10, anchor="nw", window=button3)
 	
-	button4 = tk.Button(self.canvas, text = "Extract patches", command = self.extract_patches, anchor = "w")
+	button4 = tk.Button(self.canvas, text = "Extract rnd patches", command = self.extract_patches, anchor = "w")
 	button4.configure(width = 15)
 	button4.pack()
 	button4_window = self.canvas.create_window(530, 10, anchor="nw", window=button4)
-	
+
+        button5 = tk.Button(self.canvas, text = "Segmentation patches / this frame", command = self.extract_patches_tf, anchor = "w")
+        button5.configure(width = 25)
+        button5.pack()
+        button5_window = self.canvas.create_window(730, 10, anchor="nw", window=button5)
+
+
 	#button5 = tk.Button(self.canvas, text = "Extract all patches", command = extract_patches.generate_patches_for_models((200,200)), anchor = "w")
 	#button5.configure(width = 15)
 	#button5.pack()
@@ -225,7 +231,52 @@ class SampleApp(tk.Tk):  # inherit from Tk class
     
     
     #def split_train_test(self):
-      
+   
+    def image_segmentation(self, window_size, image_num = 0, overlap = 0, pos = 0):
+      self.read_image_from_file(image_num)
+      img = self.curr_image_raw
+
+      coord_x = 0
+      coord_y = 0
+      p = 0
+      counter = 0
+      nonoverlap = 10
+
+      end_loop = 0
+      while (nonoverlap!=0) and (end_loop == 0):
+        if counter < 10:
+	  Image.fromarray(img[coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_0000{2}.png".format(self.save_folder_patches,image_num,counter))
+	if (counter >=10) and (counter < 100):
+	  Image.fromarray(img[coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_000{2}.png".format(self.save_folder_patches,image_num,counter))
+        if (counter >=100) and (counter < 1000):
+          Image.fromarray(img[coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_00{2}.png".format(self.save_folder_patches,image_num,counter))
+        if (counter >=1000) and (counter < 10000):
+          Image.fromarray(img[coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_0{2}.png".format(self.save_folder_patches,image_num,counter))
+	counter = counter+1
+        print counter,": ",coord_x,"-",coord_y
+        coord_y = coord_y+nonoverlap
+        if coord_y >= 640-window_size[1]:
+          coord_x = coord_x+nonoverlap
+          coord_y = 0
+        if coord_x >= 480-window_size[0]:
+	  end_loop = 1
+          #break
+      print "segmentation with nonoverlap ",nonoverlap," done for image: ", image_num
+
+      # here the some with nonoverlap = window size / e.g. puzzle ;) 
+      while (nonoverlap==0) and (p < (640/window_size[1])*(480/window_size[0])):
+	Image.fromarray(img[coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_{2}.png".format(self.save_folder_patches,image_num,counter))
+        print counter,": ",coord_x,"-",coord_y
+        coord_y = coord_y+window_size[1]
+        if coord_y >= 640-window_size[1]:
+          coord_x = coord_x+window_size[0]
+          coord_y = 0
+        if coord_x >= 480-window_size[0]:
+          break
+        p = p+1
+        counter = counter + 1
+      print "segmentation done for image: ", image_num
+
     
     # move the train = 0 out of this function
     def sliding_window(self, window_size, image_num = 0, overlap = 0, pos = 0):
@@ -272,7 +323,7 @@ class SampleApp(tk.Tk):  # inherit from Tk class
 	  coord_y = 640-window_size[1]
 	if coord_x < 0:
 	  break      
-	
+
 	Image.fromarray(img[coord_x:coord_x+50,coord_y:coord_y+100,:]).save("{0}/{1}_{2}.png".format(self.save_folder_patches,image_num,counter))
 	fon.write("patches/{0}_{1}.png 0 \n".format(image_num, counter))
 
@@ -292,18 +343,24 @@ class SampleApp(tk.Tk):  # inherit from Tk class
       #im = Image.fromarray(patches[p])
       #im.save("test{0}.png".format(p))
       print "patches successfully saved for image: ", image_num 
+
     def extract_patches(self):
       # check for 0 in rectangles
       # count all zeros so you know how to split train and test
       # shuffle data
       # or maybe put NaN and count nans
       
-      counter = 0
+      counter = 0 # saves the number of annotations done
       for rect in self.rectangle_frame_pairs:
 	if rect is not 0:
 	  counter = counter + 1
 
-
+      print counter," many annotations" 
+      print self.rectangle_frame_pairs[50] 
+      print self.rectangle_frame_pairs[105]
+      print "call sliding_window on frame 105"
+      self.sliding_window ((50,100), 105, 0, 0)
+ 
       # split into training and test and save in file
       #stop_training = int(counter*0.75)
       stop_training = counter
@@ -326,9 +383,19 @@ class SampleApp(tk.Tk):  # inherit from Tk class
       print "patches were saved congrats to you!!!"
       
       
-      
       #self._sliding_window((50,100),0,0)
-    
+   
+    def extract_patches_tf(self):
+      # check for 0 in rectangles
+      # count all zeros so you know how to split train and test
+      # shuffle data
+      print  "Frame Info: ",self.img_num,"/",self.total_num_of_frames
+      # print  self.read_num_of_images()  # total number of frames in the directory 
+      # print  self.rectangle_frame_pairs   # contains annotation rectangle
+      #print  self.curr_photoimage
+      self.image_segmentation((50,100), self.img_num, 0, 1)
+
+ 
     
     
     def save(self):
