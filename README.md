@@ -12,40 +12,42 @@ Please visit the project [web page](http://www.optophysiology.uni-freiburg.de/Re
 Annotation of the data can be done by positioning a rectangle around the object to indicate the objects's location. 
 The annotation data is necessary to later train deep neural networks. (This way the network can be 'told' where the object is (supervised learning) in each training image).
 
-# Video preperation
-Before annotation is done, the video segments where the object of interest is visible has to be selected manually and than the frames where movement of the object is present has to be extracted from the video. Once the extraction is done, it can be proceeded with annotation.
 
-1.	Copy training and test videos to folder /experiment_DL/videos
+# Work in Progress / Mohamed (2017)
+some modifications to the extract_frames.py and to the main.py. and compute_mask.py.
 
-2.	Create files segments_{video}.txt for each video that you want to be used for training or testing in the following directory /experiment_DL/segments
+1- Usage of the main.py can be known if you type in the terminal ( python main.py -h )
 
-	{video} can e.g. be training or validation, does not have to be video name. In this tutorial, there are two videos, one for training and one for testing, so two files are present: segments_Training.txt and segments_Test.txt
+2- Usage : main.py -mf -v -fps -of
 
-3.	Play videos and mark segments in the previously created files where the object is visible in the following format {hh}:{mm}:{ss}. For example, if the object is visible and moving at minute 20 and 34 sec from the video, the format will look like 00:20:34. All of the segments has to be inserted one after another in new lines, as follows:
-00:20:34
-00:21:45
-00:22:34
-Note: For each video there should be separate segments_{video}.txt file. In the training case segments_Training.txt was used. For testing use segments_Test.txt
+ -mf: [path to the main folder that contains a folder named 'videos' (where the videos folder contains the video files and .txt files for the
+cuts of the videos, if the cut of a  video is not given then it will extract frames for the whole video)]  if the main folder is not passed then
+default is current directory
 
-4.	Now, next step is to extract the frames from the segmented videos. The frames are split into training and testing frames. For this reason, two scripts called extract_frames_from_segments_training.py and  extract_frames_from_segments_test.py exist. Navigate to /annotation_tool to find the above mentioned scrips.
+ -v : [video to extract frames from, if not passed then extract frames from all video files in the 'videos' folder]
 
-5.	First, open extract_frames_from_segments_training.py and change the appropriate variables where the tag [changeable] is present.  If you have one training video, leave images_counter as it is, otherwise change it to the number of last frame present in the training folder (if you had previously extracted frames from another video the frame numbers should continue from where they stopped). Start the script with python extract_frames_from_segments_training.py
-After the extraction the extracted frames are stored in:
-<DIR>/experiment_DL/frames/training
+ -fps: [frames per second, if not passed default fps =24]
 
-6.	Now, repeat step 1-5 for a testing video but use the script extract_frames_from_segments_test.py instead for extracting the frames.
-After the extraction the extracted frames are stored in:
-<DIR>/experiment_DL/frames/test
+ -of: [Output folder: folder containing the generated folders (patches, masks, frames ,etc). If not given then default is current directory ]
 
-7.	Repeat steps 1-6 for all the training/testing videos.
+3- you don't need to run the extract_frames.py  or compute_masks.py (they are called from the main.py)
 
-# HowTo extract patches
-To start the annotation tool, run main_training.py by opening Terminal, navigating to <DIR>/annotation_tool and writing the command python main_training.py. Annotate the data and press on the button Save Annotations. 
+4- frames folder generated is something like this ---> (output_folder/frames/name_of_video/fps_number/frames_of_the_video )
 
-# HowTo generate image masks
-1.	First annotation of the previously extracted training frames will be done.
-To start the annotation tool, run main_training.py by opening Terminal, navigating to <DIR>/annotation_tool and writing the command python main_training.py. Annotate the data and press on the button Save Annotations
-2.	After annotation of the frames is done, next step is to compute the segmentation masks from the annotations. For that reason, navigate to <DIR>/annotation_tool/ and open compute_masks_training.py using editor. There is variable images_counter that should be changed to the last mask number present in the folder. The reason for this is same as before, to preserve numbering of the masks when multiple videos are annotated.
-3.	Next, run compute_masks_training.py by using the command python compute_masks_training.py to compute the masks in the selected masks folder.
-4.	Now, repeat step 1-5 for a testing video by use the script main_test.py and compute_masks_test.py
-5.	Repeat the whole process using all testing/training videos
+5- I modified the GUI where I added a button to choose the DIRECTORY of the video frames to be annotated (e.g. output_folder/frames/name_of_video/fps_number/ )
+
+6- I also added a button to create a mask for the annotated frames if a model exists and checks if a mask is already created for this model
+
+6- Annotations are saved in output_folder/annotations/video_name_fps_number.model
+
+7-If there is an annotation model for the chosen video frames then it is automatically loaded after you load the frame directory from step 5
+
+8- Before saving the annotations I check for consistency of number of frames annotated with the number of frames of the video and I also check if there is already a saved model
+
+I attached the three scripts and you can try the program and give me a feedback (maybe the code in the main.py needs to be cleaned but I will do it later as I adjusted quite a few lines)
+
+------------------------------------------
+Still to do:
+ - segmentation folder
+ - patches positive and patches negative folders
+
